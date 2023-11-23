@@ -15,9 +15,9 @@ Re-analysis of human tear data from [PXD030990](https://www.ebi.ac.uk/pride/arch
 
 Human tear fluid was collected from 11 heathy subjects using Schirmer's strips. The wetted strips were cut in half and two protein digestion strategies compared. Proteins were extracted from the strips and digested with trypsin after extraction in one method. In the other method, trypsin was added to the strips for in-strip digestion followed by peptide extraction. Each sample was run single shot on a Thermo Tribrid Fusion instrument in maximum peptide ID modes using a 120-minute LC separation. The 22 samples (11 subjects with two digestion methods) were run twice; one run with CID dissociation and a second run using HCD dissociation. The dataset was 44 RAW files of around 1.2 GB per file.
 
-The data were processed with Proteome Discoverer v2.2. SEQUEST using a human Swiss-Prot FASTA file (about 20.3K sequences) with a precursor mass tolerance of 10 ppm, fragment ion tolerance of 0.6 Da. Variable oxidized Met and static alkylated Cys modifications were specified. Percolator was used for PSM validation. Q-value cutoffs were not listed. Protein inference was described as parsimonious. Use of decoy sequences for FDR control was not mentioned.
+The data were processed with Proteome Discoverer v2.2 (PD). SEQUEST was used with a human Swiss-Prot FASTA file (about 20.3K sequences), precursor mass tolerance of 10 ppm, and fragment ion tolerance of 0.6 Da. Variable oxidized Met and static alkylated Cys modifications were specified. Percolator (a support vector machine learning classifier) was used for PSM validation. Q-value cutoffs were not listed. Protein inference was described as parsimonious. Use of decoy sequences for FDR control was not mentioned.
 
-PD has default setting of a 6 amino acid minimum peptide length. Assuming some form of target/decoy was used, PD can set PSM cutoffs of medium (q less that 0.05) or high (q less than 0.01). It is not clear what was used. Protein reporting in PD uses protein ranking functions and allows single peptide per protein IDs by default. I think decoy proteins may be used in some form of protein FDR control. Protein inference details were missing.
+PD has default setting of a 6 amino acid minimum peptide length. Assuming some form of target/decoy was used, PD can set PSM (peptide-spectrum match) cutoffs of medium (q less that 0.05) or high (q less than 0.01). It is not clear what was used. Protein reporting in PD uses protein ranking functions and allows single peptide per protein IDs by default. I think decoy proteins may be used in some form of protein FDR control. Protein inference details were missing.
 
 The paper is nicely written and the interpretation of results seems sensible. The over 3,000 proteins identified claim is questionable and is more likely the consequence of poor protein ID error control in PD. This is more of a negative for the PD developers than the authors, although the burden of testing analysis tools lies with the users of said tools.   
 
@@ -45,10 +45,10 @@ The RAW files were processed with the [PAW pipeline](https://github.com/pwilmart
   - basic parsimony logic groups identical peptide sets
   - basic parsimony logic removes peptide sets that are subsets
   - extended parsimony logic groups proteins with insufficient ID evidence
-  - protein ID uses the two peptide rule
+  - protein ID uses the two-peptide rule
     - two distinct, full or semi tryptic, unmodified peptides per protein per samples
 
-This is a basic, best practices pipeline. FASTA files are chosen carefully for completeness with minimal peptide redundancy, search setting are kept simple, wide tolerance searches are used so that accurate mass has classifier power (i.e., distinguishes correct from incorrect matches), proteins are grouped so that shared peptides do not adversely affect quantitation, and the two peptide rule controls random protein false discoveries. There are some blog posts that describe my pipeline in more detail: [what makes it different](https://pwilmart.github.io/blog/2021/06/06/PAW-pipeline-backstory) and some concepts for [bottom-up quantitative proteomics](https://pwilmart.github.io/blog/2019/09/21/shotgun-quantification).
+This is a basic, best practices pipeline. FASTA files are chosen carefully for completeness with minimal peptide redundancy, search setting are kept simple, wide tolerance searches are used so that accurate mass has classifier power (i.e., distinguishes correct from incorrect matches), proteins are grouped so that shared peptides do not adversely affect quantitation, and the two-peptide rule controls random protein false discoveries. There are some blog posts that describe my pipeline in more detail: [what makes it different](https://pwilmart.github.io/blog/2021/06/06/PAW-pipeline-backstory) and some concepts for [bottom-up quantitative proteomics](https://pwilmart.github.io/blog/2019/09/21/shotgun-quantification).
 
 Two Excel files are present in the repository. One has dataset summary statistics. The other is protein summary table from the PAW pipeline.
 
@@ -125,7 +125,13 @@ There were nearly 3 million MS2 scans acquired from the 44 runs. Over half a mil
 
 Some other notes about the analysis: 1+ peptides were not excluded from acquisition (charges 1 to 6 were present). The mass calibration was very good across all samples. The data were processed by dissociation method (22 samples per chunk) in case Comet score distributions differed for CID versus HCD data (they actually looked similar). Protein inference was done from the confident (1% FDR) PSMs from all 44 samples to produce a master list of putative protein IDs experiment-wide. That list was culled by requiring the two-peptide rule to be satisfied in at least one sample (per LC run here).
 
-> Two distinct peptides across the whole experiment is not sufficient criteria for protein IDs. We know that the proteins are present in individual samples and we need to apply the two peptide rule to individual samples.
+> Two distinct peptides across the whole experiment is not sufficient criteria for protein IDs. We know that the proteins are present in individual samples and we need to apply the two-peptide rule to individual samples.
+
+## PAW pipeline does not tally numbers of peptides or unique peptides
+
+Some tools and many papers quote and compare numbers of unique peptides as some sort of figure of merit. There is seldom any description of how the counting is done and never any mention of how FASTA file choice can change numbers of peptides and proteins from the same data. I even see calculations of peptide false discovery rates. The only reliable metrics for comparing proteomics sample processing methods, instrument methods, or data analysis choices in DDA experiments are PSM counts. Even those need some clarification. It should be instrument scan counts in DDA experiments not sequence counts. Single spectra can have more than one assigned peptide sequence. The number of peptide sequences associated with a set of PSMs will be greater than the number of MS2 scans associated with the PSMs. Peptide counts depend on many factors: how are different charge states counted? How are unmodified and modified versions of the same peptide sequence counted? What is the context (FASTA file or inferred protein list) for categorizing a peptide as shared or unique? The number of inferred proteins also depends strongly on the FASTA file choice and on protein ID criteria (minimum number of peptides per protein, inclusion or exclusion of multiple forms of the same peptide base sequence, choice of protein ranking function, and protein FDR methods).
+
+Counting peptides and/or proteins is always problematic. Counting scans associated with PSMs is easier and more likely to be unbiased. My pipeline does not count peptides. There are peptide reports, but those are the peptides conditioned on the reported protein list. Most pipelines have conditioned peptide summaries; however, those do not give accurate peptide counts (especially for decoy peptides).
 
 ## How are PAW protein results summarized?
 
@@ -158,7 +164,7 @@ In-strip digest + CID|11|469|14
 In-strip digest + HCD|11|441|14
 
 <br>The paper claimed over 3,000 identified proteins and this re-analysis has only 478 identified proteins. Note that the best method (in-strip + CID) had 469 proteins, almost the same as the 478 experiment-wide. The paper also reported average numbers of proteins identified per sample (and standard deviations) for each of the 4 methods. Below we report the re-analysis average protein identification numbers and the numbers from the paper.
-<br><br>
+<br>
 
 **Average number of protein IDs per sample by method.** Values are averages plus/minus standard deviations.
 
@@ -220,7 +226,7 @@ Fractionation gives almost 5 times as many protein IDs from PSM numbers that are
 
 If you are not a fan of DDA experiments, DIA won't change the situation. Wide window DDA won't do it either. Allowing chimeric precursors is going to help either. Nothing gets past the fact that you have limited dynamic range for peptides binding on the LC system and limited inter-scan dynamic range on the mass spec instrument. These are fundamental measurement science limitations. Think for a minute or two about acquiring 3 million MS2 scans, filtering to over 530K confident PSMs, and getting only 500-700 proteins from samples known to have well over 3,000 proteins (human tears).
 
-There were real reasons why MudPIT methods were developed 25 years ago. Loading more digest and fractionating is not just about instrument scan rates and sampling. It is also about how you can get more of the peptides from the complex digest into the instrument. More total digest is used in fractionated experiments. Single shot experiments are limited by the laws of physics. Very short gradient single shot experiments seem like an incredibly bad idea to me with my scant 20 years experience in proteomics. I do not understand why smart folks think deep proteome profiling is possible with little separation of very complex peptide digests.
+There were real reasons why [MudPIT methods](https://www.nature.com/articles/nbt0799_676) were developed 25 years ago. Loading more digest and fractionating is not just about instrument scan rates and sampling. It is also about how you can get more of the peptides from the complex digest into the instrument. More total digest is used in fractionated experiments. Single shot experiments are limited by the laws of physics. Very short gradient single shot experiments seem like an incredibly bad idea to me with my scant 20 years experience in proteomics. I do not understand why smart folks think deep proteome profiling is possible with little separation of very complex peptide digests.
 
 ---
 
