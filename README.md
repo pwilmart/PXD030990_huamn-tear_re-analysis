@@ -50,6 +50,8 @@ The RAW files were processed with the [PAW pipeline](https://github.com/pwilmart
 
 This is a basic, best practices pipeline. FASTA files are chosen carefully for completeness with minimal peptide redundancy, search setting are kept simple, wide tolerance searches are used so that accurate mass has classifier power (i.e., distinguishes correct from incorrect matches), proteins are grouped so that shared peptides do not adversely affect quantitation, and the two peptide rule controls random protein false discoveries. There are some blog posts that describe my pipeline in more detail: [what makes it different](https://pwilmart.github.io/blog/2021/06/06/PAW-pipeline-backstory) and some concepts for [bottom-up quantitative proteomics](https://pwilmart.github.io/blog/2019/09/21/shotgun-quantification).
 
+Two Excel files are present in the repository. One has dataset summary statistics. The other is protein summary table from the PAW pipeline.
+
 ## Dataset statistics
 
 Here is the breakdown on the 44 RAW files - how many starting MS2 scans, how many scans had matches that made the 1% target/decoy FDR cutoff, and the scan-level PSM ID rates.
@@ -212,7 +214,7 @@ This 708 number is very close to the 700 numbers from the sum of the high, mediu
 
 ## Single shot experimental designs
 
-Getting about 700 proteins from over 530K PSMs is nothing to write home about and (strongly) suggests single shot experimental designs have severe limitations. We have done some TMT-labeled human tear samples collected with Schirmer's strips in our core. We extracted proteins, did S-Trap digests, labeled with TMTpro, and ran 20-high pH reverse phase fractions on a Fusion Tribrid with a 2-hour low pH RP gradient for each fraction. An SPS-MS3 TMT method was used. More about the experiments can be found in [this publication](https://www.sciencedirect.com/science/article/abs/pii/S1542012423000198). Each 20-fraction experiment had about 370K MS2/MS3 scans acquired. About 66K scans were identified at a 1% FDR in each experiment. Those PSMs mapped to around 3K proteins with a 2-peptide per protein requirement for each experiment.
+Getting about 700 proteins from over 530K PSMs is nothing to write home about and (strongly) suggests single shot experimental designs have severe limitations. We have done some TMT-labeled human tear samples collected with Schirmer's strips in our core. We extracted proteins, did S-Trap digests, labeled with TMTpro, and ran 20-high pH reverse phase fractions on a Fusion Tribrid with a 2-hour low pH RP gradient for each fraction. An SPS-MS3 TMT method was used. More about the experiments can be found in [this publication](https://www.sciencedirect.com/science/article/pii/S1542012423000198). Each 20-fraction experiment had about 370K MS2/MS3 scans acquired. About 66K scans were identified at a 1% FDR in each experiment. Those PSMs mapped to around 3K proteins with a 2-peptide per protein requirement for each experiment.
 
 Fractionation gives almost 5 times as many protein IDs from PSM numbers that are 8 times smaller. You could do a fractionated 18-plex TMT experiment where over 3K proteins could be accurately quantified from tears in the same clock time as 18 single shot runs where a few hundred proteins could be quantified. The two experimental designs use the same number of hours of instrument time, but are not remotely equivalent in terms of quantitative proteome profiling.
 
